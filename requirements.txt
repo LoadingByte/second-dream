@@ -1,0 +1,8 @@
+regex
+numpy
+matplotlib
+pydot
+keras
+tensorflow
+flask
+flask-wtf
