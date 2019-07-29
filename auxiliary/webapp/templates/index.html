@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../static/style.css"/>
+    <title>Second Dream &centerdot; Online Time Series Deep Dreaming</title>
+</head>
+<body>
+
+<header>
+    <h1>Second Dream</h1>
+    <p>Online Time Series Deep Dreaming</p>
+</header>
+
+<main>
+    {% if dream_svg is defined %}
+        <div>
+            <h2>Dream</h2>
+            {{ dream_svg }}
+
+            <div id="dream-stats">
+                <table>
+                    <tr>
+                        <th>Class</th>
+                        {% for i in range(base_prediction|length) %}
+                            {% if true_class is defined and true_class == i %}
+                                <th class="true-class"><abbr title="True class of the base time series">{{ i }}</abbr>
+                                </th>
+                            {% else %}
+                                <th>{{ i }}</th>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>Base prediction</th>
+                        {% for p in base_prediction %}
+                            <td>{{ "%0.3f" % p }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>Dream prediction</th>
+                        {% for p in dream_prediction %}
+                            <td>{{ "%0.3f" % p }}</td>
+                        {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if overloaded is defined %}
+        <div>
+            <h2>Server Overloaded</h2>
+            <p>
+                {% if overloaded == "no_capacity" %}
+                    There are too many other users currently waiting in the queue for their computation.
+                    Please try again in about 30 to 60 seconds.
+                {% elif overloaded == "timeout" %}
+                    Your computation took too long to finish. Try adjusting the hyperparameters to reduce
+                    computation time and then try again.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    <div>
+        <h2>Configuration</h2>
+        <form method="get">
+            {% for subform in form %}
+                <fieldset>
+                    <legend>{{ subform.label.text }}</legend>
+
+                    {% for field in subform %}
+                        {% if field.name == "base_timeser-source" %}
+                            {# Skip radio buttons, we're gonna add them manually down below #}
+                        {% elif field.__class__.__name__ == "SubmitField" %}
+                            {{ field() }}
+                        {% else %}
+                            <div>
+                                {% if subform.name == "base_timeser" %}
+                                    {% for radio in subform.source %}
+                                        {% if radio.label.text == field.short_name %}
+                                            {{ radio() }}
+                                            <label for="{{ radio.id }}">{{ field.label.text }}</label>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {{ field.label() }}
+                                {% endif %}
+                                {% if field.description %}
+                                    <p class="form-description">{{ field.description }}</p>
+                                {% endif %}
+                                {{ field() }}
+                                {% if field.errors %}
+                                    <p class="form-errors">{{ field.errors|join("<br/>") }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+            {% endfor %}
+        </form>
+
+        <p class="love">
+            Made with &hearts; by Felix Mujkanovic
+            (<a href="https://github.com/LoadingByte">LoadingByte</a>)
+        </p>
+    </div>
+
+    {% if model_svg is defined %}
+        <div>
+            <h2>Model Visualization</h2>
+            {{ model_svg }}
+        </div>
+    {% endif %}
+</main>
+
+</body>
+</html>

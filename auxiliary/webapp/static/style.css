@@ -1,0 +1,131 @@
+body {
+    margin: 0;
+    padding: 1em 4vw;
+    font-family: "Open Sans", Verdana, Helvetica, Arial, sans-serif;
+}
+
+header {
+    margin: 1em 0 5em 0;
+    text-align: center;
+}
+
+header > * {
+    margin: 0;
+}
+
+header > h1 {
+    font-size: 2.3em;
+}
+
+svg {
+    /* Override width and height attributes on svg elements */
+    width: 100%;
+    height: auto;
+}
+
+
+/* Columns */
+
+main {
+    /*margin-top: 4em;*/
+    columns: 30em 2;
+    column-gap: 4em;
+    column-rule: 0.1em gray dotted;
+}
+
+main > div {
+    break-inside: avoid-column;
+    /* Firefox backwards compatibility */
+    page-break-inside: avoid;
+    /* For super-wide monitors */
+    max-width: 60em;
+    /* Vertical gap */
+    margin-bottom: 4em;
+}
+
+h2 {
+    /* Column headers */
+    text-align: center;
+    margin: 0 0 0.5em 0;
+    font-size: 1.8em;
+    text-decoration: underline black;
+}
+
+
+/* Dream column */
+
+#dream-stats {
+    text-align: center;
+    overflow-x: auto;
+}
+
+table {
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 0.5em;
+    border-bottom: 0.1em gray solid;
+}
+
+th:first-child {
+    text-align: right;
+}
+
+th.true-class {
+    background: #aeeea7;
+}
+
+
+/* Form column */
+
+form {
+    columns: 15em 2;
+}
+
+fieldset {
+    /* Vertical gap between fieldsets */
+    margin-bottom: 2em;
+}
+
+fieldset > *:not(legend) {
+    /* Vertical gap between inputs */
+    margin: 0.5em 0;
+}
+
+input[type="text"], input[type="submit"], textarea, select {
+    /* Make as wide as possible */
+    width: 100%;
+}
+
+input, textarea {
+    /* Avoid overflow */
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 10em;
+    padding: 0.5em;
+    resize: vertical;
+}
+
+input[type="submit"] {
+    height: 3em;
+    grid-column: 1 / -1;
+}
+
+p.form-description {
+    margin: 0;
+    font-size: 0.8em;
+}
+
+p.form-errors {
+    margin: 0;
+    color: darkred;
+}
+
+p.love, p.love > a {
+    text-align: center;
+    color: gray;
+}
