@@ -22,6 +22,7 @@ _DREAMER_THREAD = ThreadPoolExecutor(max_workers=app.config["DREAM_THREADS"], th
 
 
 class Overloaded(Exception):
+
     def __init__(self, fault):
         self.fault = fault
 

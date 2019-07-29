@@ -153,8 +153,6 @@ class LossLayersField(Field):
 
 
 class DreamForm(FlaskForm):
-    pass
-
     _model_id = None
 
     def validate_loss_layers(self, field):
@@ -222,6 +220,7 @@ DreamForm.dream = SubmitField("Start Dreaming!")
 # === Main form ===
 
 class MainForm(FlaskForm):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
