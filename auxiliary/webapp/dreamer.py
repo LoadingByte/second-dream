@@ -160,7 +160,8 @@ def _plot_dream(base_u_timeser, dream_u_timesers, dream_predictions):
         octave = np.argwhere(len(ts) == octave_lens)[0, 0]
         ax1.set_title(f"Frame {frame:03d} (Octave {octave})", fontname="monospace")
 
-    anim = FuncAnimation(fig, update, frames=len(dream_u_timesers), interval=50)
+    frames = len(dream_u_timesers)
+    anim = FuncAnimation(fig, update, frames=frames, interval=5000 / frames, repeat_delay=2000)
 
     video = anim.to_html5_video()
     plt.close(fig)
