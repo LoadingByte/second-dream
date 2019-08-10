@@ -23,6 +23,12 @@ svg {
     height: auto;
 }
 
+video {
+    /* Override width and height attributes on video elements */
+    width: 100%;
+    height: auto;
+}
+
 
 /* Columns */
 
@@ -112,7 +118,6 @@ textarea {
 
 input[type="submit"] {
     height: 3em;
-    grid-column: 1 / -1;
 }
 
 p.form-description {

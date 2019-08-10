@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
     <title>Second Dream &centerdot; Online Time Series Deep Dreaming</title>
 </head>
@@ -13,10 +14,10 @@
 </header>
 
 <main>
-    {% if dream_svg is defined %}
+    {% if dream_video is defined %}
         <div>
             <h2>Dream</h2>
-            {{ dream_svg }}
+            {{ dream_video }}
 
             <div id="dream-stats">
                 <table>
@@ -39,7 +40,7 @@
                     </tr>
                     <tr>
                         <th>Dream prediction</th>
-                        {% for p in dream_prediction %}
+                        {% for p in final_dream_prediction %}
                             <td>{{ "%0.3f" % p }}</td>
                         {% endfor %}
                     </tr>
