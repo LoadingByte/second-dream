@@ -123,7 +123,7 @@ def _plot_dream(base_u_timeser, dream_u_timesers, dream_predictions):
     ax1.set_ylim(min_y - margin_y, max_y + margin_y)
 
     # Setup lines in the main plot.
-    ax1.plot(base_u_timeser, color="lightgray", label="Base")
+    ax1.plot(base_u_timeser, color="gray", label="Base")
     dream_line, = ax1.plot([], [], color="darkred", label="Dream")
     ax1.legend()
 
