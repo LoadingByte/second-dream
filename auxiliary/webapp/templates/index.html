@@ -3,8 +3,13 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for("static", filename="style.css") }}"/>
     <title>Second Dream &centerdot; Online Time Series Deep Dreaming</title>
+
+    {% if dream_script is defined %}
+        <script type="text/javascript" src="/bokeh.js"></script>
+        {{ dream_script }}
+    {% endif %}
 </head>
 <body>
 
@@ -14,10 +19,14 @@
 </header>
 
 <main>
-    {% if dream_video is defined %}
+    {% if dream_div is defined or dream_video is defined %}
         <div>
             <h2>Dream</h2>
-            {{ dream_video }}
+            {% if dream_div is defined %}
+                {{ dream_div }}
+            {% elif dream_video is defined %}
+                {{ dream_video }}
+            {% endif %}
 
             <div id="dream-stats">
                 <table>

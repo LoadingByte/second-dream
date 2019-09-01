@@ -1,6 +1,7 @@
 regex
 numpy
 matplotlib
+bokeh
 pydot
 keras
 tensorflow

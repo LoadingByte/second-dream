@@ -60,6 +60,10 @@ h2 {
 
 /* Dream column */
 
+.bk-root {
+    margin-bottom: 3em;
+}
+
 #dream-stats {
     text-align: center;
     overflow-x: auto;

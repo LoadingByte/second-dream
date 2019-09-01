@@ -13,7 +13,7 @@ from wtforms.widgets import TextArea
 import second_dream
 from . import app
 from .data import MODELS, ModelId, layer_names, timeser_len, max_testset_timeser_idx
-from .dreamer import BASE_TIMESER_PRESETS
+from .dreamer import BASE_TIMESER_PRESETS, PLOT_TYPES
 
 
 def _first(coll):
@@ -214,6 +214,9 @@ DreamForm.loss_layers = LossLayersField("Loss layers",
                                             "assigns weight 1.5 to neuron 5,8."),
                                         # By default, use the whole last layer of the default (= first) model.
                                         default={_DEFAULT_LAYER: 1})
+DreamForm.plot_type = SelectField("Plot type",
+                                  choices=list(PLOT_TYPES.items()),
+                                  default=_first(PLOT_TYPES.keys()))
 DreamForm.dream = SubmitField("Start Dreaming!")
 
 

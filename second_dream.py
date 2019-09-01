@@ -152,13 +152,13 @@ def dream(model, loss_layers, base_umb_timeser,
 
     # Convert the batch dream time series back to the format of the base time series.
     if base_timeser_format == "u":
-        dream_umb_timesers = np.array([t[0].reshape(-1, order="F") for t in dream_b_timesers])
+        dream_umb_timesers = [t[0].reshape(-1, order="F") for t in dream_b_timesers]
     elif base_timeser_format == "m":
-        dream_umb_timesers = np.array([t[0] for t in dream_b_timesers])
+        dream_umb_timesers = [t[0] for t in dream_b_timesers]
     elif base_timeser_format == "b":
-        dream_umb_timesers = np.array(dream_b_timesers)
+        dream_umb_timesers = dream_b_timesers
 
-    return dream_umb_timesers[1:] if intermediates else dream_umb_timesers[-1]
+    return dream_umb_timesers if intermediates else dream_umb_timesers[-1]
 
 
 def instrument_model(model, backend_kwargs=None):
