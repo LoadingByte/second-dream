@@ -7,7 +7,7 @@
     <title>Second Dream &centerdot; Online Time Series Deep Dreaming</title>
 
     {% if dream_script is defined %}
-        <script type="text/javascript" src="/bokeh.js"></script>
+        <script type="text/javascript" src="{{ url_for("bokeh_js") }}"></script>
         {{ dream_script }}
     {% endif %}
 </head>
