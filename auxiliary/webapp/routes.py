@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bokeh.resources import INLINE
 from flask import render_template, request, Response
 from markupsafe import Markup
@@ -55,4 +57,11 @@ BOKEH_JS = "\n".join(INLINE.js_raw)
 
 @app.route("/bokeh.js")
 def bokeh_js():
-    return Response(BOKEH_JS, mimetype="text/javascript")
+    response = Response(BOKEH_JS, mimetype="text/javascript")
+
+    max_age = app.send_file_max_age_default
+    response.headers["Expires"] = (datetime.now() + max_age).strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.cache_control.public = True
+    response.cache_control.max_age = int(max_age.total_seconds())
+
+    return response
