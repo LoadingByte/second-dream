@@ -1,6 +1,4 @@
-from collections import Mapping
 from itertools import takewhile
-from numbers import Number
 
 import numpy as np
 import regex
@@ -14,6 +12,7 @@ import second_dream
 from . import app
 from .data import MODELS, ModelId, layer_names, timeser_len, max_testset_timeser_idx
 from .dreamer import BASE_TIMESER_PRESETS, PLOT_TYPES
+from .form_loss_layers import format_loss_layers, parse_loss_layers, validate_loss_layers
 
 
 def _first(coll):
@@ -23,19 +22,21 @@ def _first(coll):
 # === Model form ===
 
 
-_DEFAULT_MODEL = _first(MODELS.keys())
+# By default, use the first model.
+_DEFAULT_MODEL_ID = _first(MODELS)
 if "DEFAULT_MODEL" in app.config:
     try:
-        _DEFAULT_MODEL = next(m for m in MODELS.keys() if (m.model_type, m.dataset_name) == app.config["DEFAULT_MODEL"])
+        _DEFAULT_MODEL_ID = next(m for m in MODELS
+                                 if (m.model_type, m.dataset_name) == app.config["DEFAULT_MODEL"])
     except StopIteration:
-        app.logger.error("DEFAULT_MODEL %s from config file could not be found in models directory",
-                         app.config["DEFAULT_MODEL"])
+        raise ValueError(f"DEFAULT_MODEL {app.config['DEFAULT_MODEL']} from config file "
+                         "could not be found in models directory")
 
 
 class ModelForm(FlaskForm):
     model = SelectField("Model",
-                        choices=[(id, f"{id.model_type} on {id.dataset_name}") for id in MODELS.keys()],
-                        default=_DEFAULT_MODEL,
+                        choices=[(id, f"{id.model_type} on {id.dataset_name}") for id in MODELS],
+                        default=_DEFAULT_MODEL_ID,
                         coerce=ModelId.from_string)
     update = SubmitField("Update")
 
@@ -107,70 +108,26 @@ setattr(BaseTimeserForm, "source",
 # === Dream form ===
 
 class LossLayersField(Field):
-    _FLOAT_REGEX = r"[\-+]?\d+(?:.[\d]+)?"
-    _LINE_REGEX = regex.compile(
-        rf"^\s*([^\s]+)(?:\s+({_FLOAT_REGEX})|(?:\s+#(\d+(?:,\d+)*)[:=\s]+({_FLOAT_REGEX}))+)\s*$")
-
     widget = TextArea()
 
     def _value(self):
-        def _weight_to_string(weight):
-            if isinstance(weight, Number):
-                return str(weight)
-            else:
-                return " ".join("#" + ",".join(map(str, n)) + f":{w}" for n, w in weight.items())
-
         if self.process_errors:
             return self.raw_data[0]
         else:
-            return "\n".join(layer_name + " " + _weight_to_string(weight) for layer_name, weight in self.data.items())
+            return format_loss_layers(self.data)
 
     def process_formdata(self, valuelist):
-        def _parse_num(num_str):
-            try:
-                return int(num_str)
-            except ValueError:
-                return float(num_str)
-
-        if valuelist or self.data is None:
-            self.data = {}
-
         if valuelist:
-            for line_no, line in enumerate(valuelist[0].splitlines()):
-                match = LossLayersField._LINE_REGEX.match(line)
-                if match is None:
-                    self.process_errors.append(f"Line {line_no + 1}: Invalid syntax")
-                    continue
-
-                layer_name = match[1]
-                if match[2] is not None:
-                    weight = _parse_num(match[2])
-                    self.data[layer_name] = weight
-                else:
-                    neuron_weights = {tuple(int(dim) for dim in n.split(",")): _parse_num(w)
-                                      for n, w in zip(match.captures(3), match.captures(4))}
-                    self.data[layer_name] = neuron_weights
+            self.data, self.process_errors = parse_loss_layers(valuelist[0])
+        elif self.data is None:
+            self.data = {}
 
 
 class DreamForm(FlaskForm):
     _model_id = None
 
     def validate_loss_layers(self, field):
-        layer_dict = {layer.name: layer for layer in MODELS[self._model_id].keras_model.layers}
-        for line_no, (layer_name, user_weights) in enumerate(field.data.items()):
-            if layer_name not in layer_dict.keys():
-                field.errors.append(f"Line {line_no + 1}: Unknown layer {layer_name}")
-            elif isinstance(user_weights, Mapping):
-                layer_shape = np.array([comp for comp in layer_dict[layer_name].output_shape if comp is not None])
-
-                for neuron in user_weights.keys():
-                    if len(layer_shape) != len(neuron):
-                        field.errors.append(f"Line {line_no + 1}: Layer {layer_name} has dimension {len(layer_shape)}, "
-                                            f"you provided for {len(neuron)}")
-                    elif any(neuron >= layer_shape):
-                        field.errors.append(f"Line {line_no + 1}: Maximum neuron is " +
-                                            ",".join(map(str, layer_shape - 1)) + ", you provided " +
-                                            ",".join(map(str, neuron)))
+        field.errors += validate_loss_layers(field.data, MODELS[self._model_id])
 
     def tell_model_id(self, model_id):
         self._model_id = model_id
@@ -196,24 +153,31 @@ for param, default in second_dream.DEFAULT_HYPERPARAMS.items():
         field = FloatField(param, description=_hyperparam_desc(param), default=default)
     setattr(DreamForm, param, field)
 
-_DEFAULT_LAYER = layer_names(_DEFAULT_MODEL)[-1]
-
+# By default, use the whole last layer of the default model.
+_DEFAULT_LOSS_LAYERS = {layer_names(_DEFAULT_MODEL_ID)[-1]: 1}
+if "DEFAULT_LOSS_LAYERS" in app.config:
+    _DEFAULT_LOSS_LAYERS, errors = parse_loss_layers(app.config["DEFAULT_LOSS_LAYERS"])
+    errors += validate_loss_layers(_DEFAULT_LOSS_LAYERS, MODELS[_DEFAULT_MODEL_ID])
+    if errors:
+        raise ValueError("The DEFAULT_LOSS_LAYERS specified in the config file are invalid:" +
+                         "".join("\n * " + error for error in errors))
+_DEMO_LAYER = next(iter(_DEFAULT_LOSS_LAYERS))
 DreamForm.loss_layers = LossLayersField("Loss layers",
                                         description=Markup(
                                             "Each line adds one layer whose L2 activation we maximize, alongside a "
                                             "relative weight. Because the sum of all squared activations of the "
                                             "neuron in the layer is maximized, few high activations will win over "
                                             "lots of small activations.<br/>"
-                                            f"<kbd>{_DEFAULT_LAYER} 0.5</kbd> maximizes the layer {_DEFAULT_LAYER} "
+                                            f"<kbd>{_DEMO_LAYER} 0.5</kbd> maximizes the layer {_DEMO_LAYER} "
                                             "with weight 0.5.<br/>"
-                                            f"<kbd>{_DEFAULT_LAYER} #0:1 #3:1.5</kbd> only maximizes neurons 0 and 3 "
-                                            f"from the layer {_DEFAULT_LAYER} with weights 1 and 1.5, "
+                                            f"<kbd>{_DEMO_LAYER} #0:1 #3:1.5</kbd> only maximizes neurons 0 and 3 "
+                                            f"from the layer {_DEMO_LAYER} with weights 1 and 1.5, "
                                             "respectively.<br/>"
                                             "Note that depending on the shape of the layer, you may need more "
                                             "coordinates to identify a single neuron. For example, <kbd>#5,8:1.5</kbd> "
                                             "assigns weight 1.5 to neuron 5,8."),
-                                        # By default, use the whole last layer of the default (= first) model.
-                                        default={_DEFAULT_LAYER: 1})
+                                        default=_DEFAULT_LOSS_LAYERS)
+
 DreamForm.plot_type = SelectField("Plot type",
                                   choices=list(PLOT_TYPES.items()),
                                   default=_first(PLOT_TYPES.keys()))
