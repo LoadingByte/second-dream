@@ -1,6 +1,6 @@
 import logging
 import sys
-
+import os
 from flask import Flask
 from werkzeug.wsgi import DispatcherMiddleware
 
@@ -20,8 +20,9 @@ app = Flask(__name__)
 app.config["WTF_CSRF_ENABLED"] = False
 
 # Load config from disk
-app.config.from_pyfile("settings.cfg", silent=True)
-app.config.from_envvar("SD_SETTINGS", silent=True)
+app.config.from_pyfile("settings.cfg")
+if "SD_SETTINGS" in os.environ:
+    app.config.from_envvar("SD_SETTINGS")
 
 # Change the application root if configured
 if "APPLICATION_ROOT" in app.config and app.config["APPLICATION_ROOT"] != "/":
