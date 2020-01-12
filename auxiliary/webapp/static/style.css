@@ -97,6 +97,10 @@ form {
 fieldset {
     /* Vertical gap between fieldsets */
     margin-bottom: 2em;
+    /* Don't add column breaks in the middle of fieldsets */
+    break-inside: avoid; /* Web standard */
+    page-break-inside: avoid; /* Firefox */
+    -webkit-column-break-inside: avoid; /* Old Chromium etc. */
 }
 
 fieldset > *:not(legend) {
